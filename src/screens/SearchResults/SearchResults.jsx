@@ -1,31 +1,53 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar/Navbar";
 import "./SearchResults.css";
+import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
+import { setLoader } from "../../redux/loader/loaderSlice";
+import { css } from "@emotion/react";
+import { ClipLoader } from "react-spinners";
 
 const SearchResults = () => {
   const [searchResults, setSearchResults] = useState([]);
-  const [loader, setLoader] = useState(true);
+  const loader = useSelector((state) => state.loader.isLoading);
+  const dispatch = useDispatch();
 
-  useEffect(() => {
-    fetchSearchResults();
-  }, []);
+  const override = css`
+    display: block;
+    margin: 0 auto;
+    border-color: red;
+  `;
 
   const fetchSearchResults = () => {
     fetch("https://dummyjson.com/products/search?q=phone")
       .then((response) => response.json())
       .then((data) => {
         setSearchResults(data.products);
-        setLoader(false);
+        dispatch(setLoader(false));
       })
-      .catch((error) => console.error("Error fetching search results:", error));
+      .catch((error) => {
+        dispatch(setLoader(false));
+        console.error("Error fetching search results:", error);
+      });
   };
+
+  useEffect(() => {
+    fetchSearchResults();
+    dispatch(setLoader(true));
+  }, []);
 
   return (
     <div>
       <Navbar />
       {loader ? (
-        <div>Loading...</div>
+        <div className="loader-container">
+          <ClipLoader
+            color={"#123abc"}
+            loading={loader}
+            css={override}
+            size={150}
+          />
+        </div>
       ) : (
         <div className="product-list">
           {searchResults.map((product) => (
