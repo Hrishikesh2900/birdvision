@@ -3,46 +3,62 @@ import { useParams } from "react-router-dom";
 import { AiFillStar } from "react-icons/ai";
 import { Carousel } from "react-responsive-carousel";
 import Navbar from "../../components/Navbar/Navbar";
+import { useSelector, useDispatch } from "react-redux";
+import { setLoader } from "../../redux/loader/loaderSlice";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import "./ProductDetail.css";
+import { css } from "@emotion/react";
+import { ClipLoader } from "react-spinners";
 
 const ProductDetail = () => {
   const { productId } = useParams();
+  const loader = useSelector((state) => state.loader.isLoading);
+  const dispatch = useDispatch();
   const [product, setProduct] = useState(null);
-  const [loader, setLoader] = useState(false);
-
-  useEffect(() => {
-    fetchProduct(productId);
-  }, [productId]);
 
   const fetchProduct = (productId) => {
     fetch(`https://dummyjson.com/products/${productId}`)
       .then((response) => response.json())
-      .then((data) => setProduct(data))
-      .catch((error) =>
-        console.error("Error fetching product details:", error)
-      );
+      .then((data) => {
+        setProduct(data);
+        dispatch(setLoader(false));
+      })
+      .catch((error) => {
+        console.error("Error fetching product details:", error);
+        dispatch(setLoader(false));
+      });
   };
-
-  useEffect(() => {
-    if (!product) {
-      setLoader(true);
-    } else {
-      setLoader(false);
-    }
-  }, [product]);
-
-  console.log(product);
 
   const handleAddToCart = () => {};
 
   const handleBuyNow = () => {};
 
+  const override = css`
+    display: block;
+    margin: 0 auto;
+    border-color: red;
+  `;
+
+  useEffect(() => {
+    fetchProduct(productId);
+  }, [productId]);
+
+  useEffect(() => {
+    dispatch(setLoader(true));
+  }, []);
+
   return (
     <>
       <Navbar />
       {loader ? (
-        <div>Loading...</div>
+        <div className="loader-container">
+          <ClipLoader
+            color={"#123abc"}
+            loading={loader}
+            css={override}
+            size={150}
+          />
+        </div>
       ) : (
         <div className="product-detail-container">
           <div className="product-detail-content">
